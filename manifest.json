@@ -1,0 +1,51 @@
+{
+  "name": "Carwas M&C 173 — Lavado a Domicilio",
+  "short_name": "Carwas M&C",
+  "description": "Servicio de lavado y detallado de autos a domicilio en Cartago, Costa Rica. Reservá por WhatsApp.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#f5c518",
+  "orientation": "portrait-primary",
+  "lang": "es-CR",
+  "categories": ["business", "lifestyle"],
+  "icons": [
+    {
+      "src": "img/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "img/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Reservar Ahora",
+      "short_name": "Reservar",
+      "description": "Ir al formulario de reserva",
+      "url": "/#mc-reserva",
+      "icons": [{ "src": "img/logo.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "WhatsApp Directo",
+      "short_name": "WhatsApp",
+      "description": "Abrir WhatsApp de Greivin",
+      "url": "https://wa.me/50687375227",
+      "icons": [{ "src": "img/logo.png", "sizes": "96x96" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "img/galeria1.jpg",
+      "sizes": "1080x1920",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Servicio de lavado a domicilio"
+    }
+  ]
+}

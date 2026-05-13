@@ -1,0 +1,16 @@
+# CARWAS M&C 173 — robots.txt
+# Subir a la raíz del repositorio GitHub
+
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /admin/panel_admin.html
+
+# Sitemap
+Sitemap: https://TU-USUARIO.github.io/carwas-mc/sitemap.xml
+
+# Bloquear archivos de configuración
+Disallow: /*.json$
+Disallow: /*.sh$
+Disallow: /*.py$
+Disallow: /*.yml$
