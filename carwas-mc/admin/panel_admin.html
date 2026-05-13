@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Admin — Carwas M&C 173</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── RESET & VARS ── */
+:root {
+  --negro:    #0a0a0a;
+  --gris1:    #141414;
+  --gris2:    #1e1e1e;
+  --gris3:    #2a2a2a;
+  --gris4:    #363636;
+  --blanco:   #f0ede6;
+  --amarillo: #f5c518;
+  --verde:    #27ae60;
+  --rojo:     #e74c3c;
+  --azul:     #3498db;
+  --naranja:  #e67e22;
+  --texto:    #b0a890;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--negro); color: var(--blanco); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+a { text-decoration: none; color: inherit; }
+
+/* ── LOGIN SCREEN ── */
+#mc-login {
+  position: fixed; inset: 0; z-index: 9999;
+  background: var(--negro);
+  display: flex; align-items: center; justify-content: center;
+}
+.login-box {
+  background: var(--gris2); border: 1px solid rgba(245,197,24,.2);
+  border-radius: 12px; padding: 3rem 2.5rem; width: 100%; max-width: 380px;
+  text-align: center;
+}
+.login-logo { font-family: 'Bebas Neue', sans-serif; font-size: 2rem; color: var(--amarillo); letter-spacing: 3px; }
+.login-sub { font-size: .8rem; color: var(--texto); margin-bottom: 2rem; margin-top: .3rem; }
+.login-box input {
+  width: 100%; background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.1); border-radius: 6px;
+  padding: .8rem 1rem; color: var(--blanco); font-family: 'DM Sans', sans-serif;
+  font-size: .95rem; margin-bottom: 1rem;
+  transition: border-color .2s;
+}
+.login-box input:focus { outline: none; border-color: var(--amarillo); }
+.login-btn {
+  width: 100%; background: var(--amarillo); color: var(--negro);
+  border: none; border-radius: 6px; padding: .85rem;
+  font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: .95rem;
+  cursor: pointer; transition: background .2s;
+}
+.login-btn:hover { background: #ffd740; }
+.login-err { color: var(--rojo); font-size: .8rem; margin-top: .5rem; display: none; }
+
+/* ── LAYOUT ADMIN ── */
+#mc-admin { display: none; flex-direction: column; min-height: 100vh; }
+
+/* Topbar */
+.adm-topbar {
+  background: var(--gris1); border-bottom: 1px solid rgba(245,197,24,.15);
+  padding: .8rem 1.5rem;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+}
+.adm-brand { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; color: var(--amarillo); letter-spacing: 2px; }
+.adm-brand span { font-size: .65rem; font-family: 'DM Sans', sans-serif; color: var(--texto); letter-spacing: 1px; display: block; text-transform: uppercase; }
+.adm-topbar-right { display: flex; align-items: center; gap: 1rem; }
+.adm-date { font-size: .78rem; color: var(--texto); }
+.adm-logout { background: none; border: 1px solid rgba(255,255,255,.15); color: var(--texto); padding: .35rem .9rem; border-radius: 4px; cursor: pointer; font-size: .78rem; transition: all .2s; }
+.adm-logout:hover { border-color: var(--rojo); color: var(--rojo); }
+
+/* Main area */
+.adm-main { flex: 1; padding: 1.5rem; max-width: 1400px; margin: 0 auto; width: 100%; }
+
+/* Tabs */
+.adm-tabs { display: flex; gap: .5rem; margin-bottom: 1.5rem; border-bottom: 1px solid var(--gris3); padding-bottom: .5rem; flex-wrap: wrap; }
+.adm-tab {
+  padding: .5rem 1.2rem; border-radius: 4px 4px 0 0;
+  font-size: .82rem; font-weight: 600; cursor: pointer;
+  color: var(--texto); border: 1px solid transparent;
+  transition: all .2s;
+}
+.adm-tab.active { background: var(--gris2); border-color: var(--gris3) var(--gris3) var(--negro); color: var(--amarillo); }
+.adm-tab:hover:not(.active) { color: var(--blanco); }
+
+/* Tab panels */
+.adm-panel { display: none; }
+.adm-panel.active { display: block; }
+
+/* KPI Cards */
+.adm-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+.kpi-card {
+  background: var(--gris2); border: 1px solid rgba(255,255,255,.06);
+  border-radius: 8px; padding: 1.2rem;
+  transition: border-color .2s;
+}
+.kpi-card:hover { border-color: rgba(245,197,24,.3); }
+.kpi-label { font-size: .7rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--texto); margin-bottom: .5rem; }
+.kpi-val { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; line-height: 1; }
+.kpi-val.amarillo { color: var(--amarillo); }
+.kpi-val.verde    { color: var(--verde); }
+.kpi-val.azul     { color: var(--azul); }
+.kpi-val.naranja  { color: var(--naranja); }
+.kpi-sub { font-size: .7rem; color: var(--texto); margin-top: .3rem; }
+
+/* Tabla de reservas */
+.adm-table-wrap { background: var(--gris2); border: 1px solid rgba(255,255,255,.06); border-radius: 8px; overflow: hidden; }
+.adm-table-header { padding: 1rem 1.2rem; border-bottom: 1px solid var(--gris3); display: flex; align-items: center; justify-content: space-between; flex-wrap: gap; gap: .8rem; }
+.adm-table-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; letter-spacing: 1px; }
+.adm-filters { display: flex; gap: .5rem; flex-wrap: wrap; }
+.adm-filter-btn { background: var(--gris3); border: none; color: var(--blanco); padding: .35rem .9rem; border-radius: 4px; cursor: pointer; font-size: .75rem; font-weight: 500; transition: all .2s; }
+.adm-filter-btn.active, .adm-filter-btn:hover { background: var(--amarillo); color: var(--negro); }
+.adm-search { background: var(--gris3); border: 1px solid rgba(255,255,255,.08); border-radius: 4px; padding: .35rem .8rem; color: var(--blanco); font-family: 'DM Sans', sans-serif; font-size: .8rem; width: 200px; }
+.adm-search:focus { outline: none; border-color: var(--amarillo); }
+
+table { width: 100%; border-collapse: collapse; }
+thead th { background: var(--gris1); padding: .7rem 1rem; text-align: left; font-size: .7rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--texto); font-weight: 600; white-space: nowrap; }
+tbody tr { border-bottom: 1px solid var(--gris3); transition: background .15s; }
+tbody tr:hover { background: rgba(245,197,24,.04); }
+tbody tr:last-child { border-bottom: none; }
+td { padding: .75rem 1rem; font-size: .83rem; vertical-align: middle; }
+
+.badge {
+  display: inline-block; padding: .22rem .7rem; border-radius: 20px;
+  font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .5px;
+}
+.badge-pendiente  { background: rgba(245,197,24,.15); color: var(--amarillo); border: 1px solid rgba(245,197,24,.3); }
+.badge-confirmado { background: rgba(52,152,219,.15); color: var(--azul);     border: 1px solid rgba(52,152,219,.3); }
+.badge-completado { background: rgba(39,174,96,.15);  color: var(--verde);    border: 1px solid rgba(39,174,96,.3); }
+.badge-cancelado  { background: rgba(231,76,60,.15);  color: var(--rojo);     border: 1px solid rgba(231,76,60,.3); }
+
+.adm-action-btn {
+  background: none; border: 1px solid rgba(255,255,255,.15); color: var(--texto);
+  padding: .25rem .6rem; border-radius: 4px; cursor: pointer; font-size: .7rem;
+  transition: all .2s; margin-right: .3rem;
+}
+.adm-action-btn:hover { border-color: var(--amarillo); color: var(--amarillo); }
+.adm-action-btn.confirmar:hover { border-color: var(--azul); color: var(--azul); }
+.adm-action-btn.completar:hover { border-color: var(--verde); color: var(--verde); }
+.adm-action-btn.cancelar:hover  { border-color: var(--rojo);  color: var(--rojo); }
+
+/* Formulario nueva reserva */
+.adm-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.adm-form-group { margin-bottom: .5rem; }
+.adm-form-group label { display: block; font-size: .72rem; text-transform: uppercase; letter-spacing: 1px; color: var(--texto); margin-bottom: .4rem; font-weight: 600; }
+.adm-form-group input,
+.adm-form-group select,
+.adm-form-group textarea {
+  width: 100%; background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.1); border-radius: 6px;
+  padding: .7rem .9rem; color: var(--blanco);
+  font-family: 'DM Sans', sans-serif; font-size: .88rem;
+  transition: border-color .2s; -webkit-appearance: none;
+}
+.adm-form-group input:focus,
+.adm-form-group select:focus,
+.adm-form-group textarea:focus { outline: none; border-color: var(--amarillo); background: rgba(245,197,24,.04); }
+.adm-form-group select option { background: var(--gris2); }
+.adm-form-group textarea { resize: vertical; min-height: 80px; }
+
+.adm-price-box {
+  background: rgba(245,197,24,.08); border: 1px solid rgba(245,197,24,.2);
+  border-radius: 6px; padding: 1rem 1.2rem; margin-bottom: 1rem;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.adm-price-box .lbl { font-size: .78rem; color: var(--texto); }
+.adm-price-box .monto { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; color: var(--amarillo); }
+
+.btn-guardar {
+  background: var(--amarillo); color: var(--negro);
+  border: none; border-radius: 6px; padding: .85rem 2rem;
+  font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: .9rem;
+  cursor: pointer; transition: background .2s;
+}
+.btn-guardar:hover { background: #ffd740; }
+.btn-wa-direct {
+  background: #25d366; color: #fff;
+  border: none; border-radius: 6px; padding: .85rem 2rem;
+  font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: .9rem;
+  cursor: pointer; transition: background .2s; margin-left: .8rem;
+}
+.btn-wa-direct:hover { background: #1da851; }
+
+/* Panel agenda del día */
+.agenda-dia { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem; }
+.agenda-card {
+  background: var(--gris2); border: 1px solid rgba(255,255,255,.07);
+  border-radius: 8px; padding: 1.2rem; position: relative;
+  transition: border-color .2s;
+}
+.agenda-card:hover { border-color: rgba(245,197,24,.3); }
+.agenda-card .hora-badge {
+  font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; color: var(--amarillo); line-height: 1;
+}
+.agenda-card .cliente-nombre { font-weight: 600; font-size: .9rem; margin-top: .5rem; }
+.agenda-card .servicio-tag { font-size: .75rem; color: var(--texto); margin-top: .25rem; }
+.agenda-card .direccion-tag { font-size: .75rem; color: var(--texto); margin-top: .25rem; display: flex; align-items: flex-start; gap: .3rem; }
+.agenda-card .precio-tag { font-family: 'Bebas Neue', sans-serif; font-size: 1.2rem; color: var(--verde); position: absolute; top: 1rem; right: 1rem; }
+.agenda-card .card-actions { margin-top: 1rem; display: flex; gap: .5rem; flex-wrap: wrap; }
+
+/* Estadísticas chart */
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+.stats-box { background: var(--gris2); border: 1px solid rgba(255,255,255,.06); border-radius: 8px; padding: 1.5rem; }
+.stats-box h3 { font-size: .8rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--texto); margin-bottom: 1.2rem; }
+.bar-chart { display: flex; flex-direction: column; gap: .8rem; }
+.bar-row { display: flex; align-items: center; gap: .8rem; }
+.bar-label { font-size: .78rem; width: 140px; flex-shrink: 0; color: var(--blanco); }
+.bar-track { flex: 1; background: var(--gris3); border-radius: 4px; height: 24px; overflow: hidden; }
+.bar-fill { height: 100%; background: var(--amarillo); border-radius: 4px; display: flex; align-items: center; padding-left: .5rem; font-size: .72rem; font-weight: 700; color: var(--negro); transition: width 1s; min-width: 30px; }
+.bar-fill.verde   { background: var(--verde); color: #fff; }
+.bar-fill.azul    { background: var(--azul);  color: #fff; }
+.bar-fill.naranja { background: var(--naranja); color: #fff; }
+
+/* Notificación toast */
+.toast {
+  position: fixed; bottom: 2rem; right: 2rem; z-index: 9998;
+  background: var(--gris2); border: 1px solid rgba(245,197,24,.3);
+  border-radius: 8px; padding: .9rem 1.4rem;
+  font-size: .85rem; transform: translateY(120%);
+  transition: transform .3s; box-shadow: 0 8px 30px rgba(0,0,0,.5);
+}
+.toast.show { transform: none; }
+.toast.success { border-color: rgba(39,174,96,.4); }
+.toast.error   { border-color: rgba(231,76,60,.4); }
+
+/* Modal de detalle */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(0,0,0,.8); backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity .3s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal-box {
+  background: var(--gris2); border: 1px solid rgba(245,197,24,.2);
+  border-radius: 12px; padding: 2rem; width: 100%; max-width: 500px;
+  margin: 1rem;
+}
+.modal-title { font-family: 'Bebas Neue', sans-serif; font-size: 1.5rem; color: var(--amarillo); letter-spacing: 1px; margin-bottom: 1.2rem; }
+.modal-row { display: flex; gap: 1rem; margin-bottom: .7rem; }
+.modal-row .modal-lbl { font-size: .72rem; text-transform: uppercase; letter-spacing: 1px; color: var(--texto); width: 110px; flex-shrink: 0; padding-top: .1rem; }
+.modal-row .modal-val { font-size: .9rem; font-weight: 500; }
+.modal-actions { margin-top: 1.5rem; display: flex; gap: .6rem; flex-wrap: wrap; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .adm-form-grid { grid-template-columns: 1fr; }
+  .stats-grid { grid-template-columns: 1fr; }
+  .adm-search { width: 140px; }
+  td:nth-child(4), td:nth-child(5) { display: none; }
+  thead th:nth-child(4), thead th:nth-child(5) { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- ══ LOGIN ══ -->
+<div id="mc-login">
+  <div class="login-box">
+    <div class="login-logo">CARWAS M&C 173</div>
+    <div class="login-sub">Panel de Administración</div>
+    <input type="text" id="l-user" placeholder="Usuario" autocomplete="username">
+    <input type="password" id="l-pass" placeholder="Contraseña" autocomplete="current-password">
+    <button class="login-btn" onclick="mcLogin()">Entrar</button>
+    <div class="login-err" id="l-err">Usuario o contraseña incorrectos</div>
+    <p style="font-size:.7rem;color:var(--texto);margin-top:1.2rem">Carwas M&C 173 · Cartago, CR · 2025</p>
+  </div>
+</div>
+
+<!-- ══ PANEL ADMIN ══ -->
+<div id="mc-admin">
+
+  <!-- Topbar -->
+  <div class="adm-topbar">
+    <div class="adm-brand">
+      CARWAS M&C 173
+      <span>Panel de Administración</span>
+    </div>
+    <div class="adm-topbar-right">
+      <div class="adm-date" id="adm-fecha-hora"></div>
+      <button class="adm-logout" onclick="mcLogout()">🚪 Salir</button>
+    </div>
+  </div>
+
+  <div class="adm-main">
+
+    <!-- KPIs -->
+    <div class="adm-kpis" id="kpis-container">
+      <div class="kpi-card">
+        <div class="kpi-label">Total Reservas</div>
+        <div class="kpi-val amarillo" id="kpi-total">0</div>
+        <div class="kpi-sub">histórico</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Pendientes</div>
+        <div class="kpi-val naranja" id="kpi-pendiente">0</div>
+        <div class="kpi-sub">por confirmar</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Hoy</div>
+        <div class="kpi-val azul" id="kpi-hoy">0</div>
+        <div class="kpi-sub">citas agendadas</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Completadas</div>
+        <div class="kpi-val verde" id="kpi-completado">0</div>
+        <div class="kpi-sub">este mes</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-label">Ingresos Mes</div>
+        <div class="kpi-val verde" id="kpi-ingresos">₡0</div>
+        <div class="kpi-sub">completados</div>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="adm-tabs">
+      <div class="adm-tab active" onclick="mcTab('agenda')">📅 Agenda del Día</div>
+      <div class="adm-tab" onclick="mcTab('reservas')">📋 Todas las Reservas</div>
+      <div class="adm-tab" onclick="mcTab('nueva')">➕ Nueva Reserva</div>
+      <div class="adm-tab" onclick="mcTab('stats')">📊 Estadísticas</div>
+    </div>
+
+    <!-- PANEL: AGENDA DEL DÍA -->
+    <div class="adm-panel active" id="panel-agenda">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+        <h2 style="font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:1px" id="agenda-fecha-titulo">Agenda de hoy</h2>
+        <span id="agenda-count" style="font-size:.8rem;color:var(--texto)">0 citas</span>
+      </div>
+      <div class="agenda-dia" id="agenda-cards">
+        <div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--texto)">
+          <p style="font-size:2rem">📅</p>
+          <p style="margin-top:.5rem">No hay reservas para hoy.</p>
+          <a href="#" onclick="mcTab('nueva');return false" style="color:var(--amarillo);font-size:.85rem;margin-top:.5rem;display:inline-block">+ Agregar reserva</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANEL: TODAS LAS RESERVAS -->
+    <div class="adm-panel" id="panel-reservas">
+      <div class="adm-table-wrap">
+        <div class="adm-table-header">
+          <div class="adm-table-title">📋 Historial de Reservas</div>
+          <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
+            <input class="adm-search" type="text" placeholder="🔍 Buscar..." id="adm-buscador" oninput="mcFiltrar()">
+            <div class="adm-filters">
+              <button class="adm-filter-btn active" onclick="mcFiltroEstado(this,'todos')">Todos</button>
+              <button class="adm-filter-btn" onclick="mcFiltroEstado(this,'Pendiente')">Pendientes</button>
+              <button class="adm-filter-btn" onclick="mcFiltroEstado(this,'Confirmado')">Confirmados</button>
+              <button class="adm-filter-btn" onclick="mcFiltroEstado(this,'Completado')">Completados</button>
+              <button class="adm-filter-btn" onclick="mcFiltroEstado(this,'Cancelado')">Cancelados</button>
+            </div>
+          </div>
+        </div>
+        <div style="overflow-x:auto">
+          <table id="tabla-reservas">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Fecha</th>
+                <th>Cliente</th>
+                <th>Teléfono</th>
+                <th>Dirección</th>
+                <th>Vehículo</th>
+                <th>Servicio</th>
+                <th>Hora</th>
+                <th>Precio</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANEL: NUEVA RESERVA -->
+    <div class="adm-panel" id="panel-nueva">
+      <div class="adm-table-wrap" style="padding:1.5rem">
+        <div class="adm-table-title" style="margin-bottom:1.5rem;font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:1px">➕ Registrar Nueva Reserva</div>
+        <div class="adm-form-grid">
+          <div class="adm-form-group">
+            <label>Nombre del Cliente *</label>
+            <input type="text" id="f-nombre" placeholder="Ej: Juan Pérez">
+          </div>
+          <div class="adm-form-group">
+            <label>WhatsApp *</label>
+            <input type="tel" id="f-telefono" placeholder="Ej: 8888-0000">
+          </div>
+          <div class="adm-form-group" style="grid-column:1/-1">
+            <label>Dirección Exacta *</label>
+            <input type="text" id="f-direccion" placeholder="Ej: Res. Los Colegios, casa 5, Cartago Centro">
+          </div>
+          <div class="adm-form-group">
+            <label>Tipo de Vehículo *</label>
+            <select id="f-vehiculo" onchange="calcPrecioAdmin()">
+              <option value="">Seleccionar...</option>
+              <option value="auto">Automóvil 4x2</option>
+              <option value="suv">SUV / 4x4</option>
+            </select>
+          </div>
+          <div class="adm-form-group">
+            <label>Servicio *</label>
+            <select id="f-servicio" onchange="calcPrecioAdmin()">
+              <option value="">Seleccionar...</option>
+              <option value="basico">Lavado básico + aspirado</option>
+              <option value="encerado">Lavado + aspirado + encerado</option>
+              <option value="detallado">Detallado completo</option>
+            </select>
+          </div>
+          <div class="adm-form-group">
+            <label>Fecha del Servicio *</label>
+            <input type="date" id="f-fecha">
+          </div>
+          <div class="adm-form-group">
+            <label>Hora Asignada *</label>
+            <select id="f-hora">
+              <option value="">Seleccionar...</option>
+              <option>6:00 a.m.</option><option>7:00 a.m.</option>
+              <option>8:00 a.m.</option><option>9:00 a.m.</option>
+              <option>10:00 a.m.</option><option>11:00 a.m.</option>
+              <option>1:00 p.m.</option><option>2:00 p.m.</option>
+              <option>3:00 p.m.</option>
+            </select>
+          </div>
+          <div class="adm-form-group" style="grid-column:1/-1">
+            <label>Notas internas</label>
+            <textarea id="f-notas" placeholder="Observaciones, detalles especiales..."></textarea>
+          </div>
+        </div>
+        <div class="adm-price-box" id="admin-price-box" style="display:none">
+          <div><div class="lbl">Total del servicio</div><div id="admin-price-detail" style="font-size:.75rem;color:var(--texto)"></div></div>
+          <div class="monto" id="admin-price-monto">₡0</div>
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:.5rem">
+          <button class="btn-guardar" onclick="guardarReserva()">💾 Guardar Reserva</button>
+          <button class="btn-wa-direct" onclick="enviarWAAdmin()">📱 Abrir WhatsApp</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PANEL: ESTADÍSTICAS -->
+    <div class="adm-panel" id="panel-stats">
+      <div class="stats-grid">
+        <div class="stats-box">
+          <h3>Servicios más solicitados</h3>
+          <div class="bar-chart" id="chart-servicios"></div>
+        </div>
+        <div class="stats-box">
+          <h3>Reservas por estado</h3>
+          <div class="bar-chart" id="chart-estados"></div>
+        </div>
+        <div class="stats-box">
+          <h3>Vehículos atendidos</h3>
+          <div class="bar-chart" id="chart-vehiculos"></div>
+        </div>
+        <div class="stats-box">
+          <h3>Ingresos por servicio</h3>
+          <div class="bar-chart" id="chart-ingresos"></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /adm-main -->
+</div><!-- /mc-admin -->
+
+<!-- MODAL DETALLE -->
+<div class="modal-overlay" id="modal-detalle">
+  <div class="modal-box">
+    <div class="modal-title">Detalle de Reserva</div>
+    <div id="modal-content"></div>
+    <div class="modal-actions" id="modal-actions"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══════════════════════════════════════════
+   CONFIGURACIÓN — Cambiar estos valores
+══════════════════════════════════════════ */
+const ADMIN_USER = 'greivin';
+const ADMIN_PASS = 'Carwas2025!';
+// Número de Greivin para WhatsApp
+const WA_GREIVIN = '50687375227';
+// Webhook de n8n (dejar vacío si no está configurado)
+const N8N_WEBHOOK = '';  // 'https://TU-N8N.railway.app/webhook/carwas-mc-reserva'
+
+/* ══ PRECIOS ══ */
+const PRECIOS = {
+  basico:    { auto: 5000,  suv: 7000  },
+  encerado:  { auto: 7000,  suv: 10000 },
+  detallado: { auto: 25000, suv: 25000 }
+};
+const NOMBRE_SERVICIO = {
+  basico:    'Lavado básico + aspirado',
+  encerado:  'Lavado + aspirado + encerado',
+  detallado: 'Detallado completo'
+};
+const NOMBRE_VEHICULO = { auto: 'Automóvil 4x2', suv: 'SUV / 4x4' };
+
+/* ══ ESTADO ══ */
+let reservas = JSON.parse(localStorage.getItem('carwas_reservas') || '[]');
+let filtroEstado = 'todos';
+let loggedIn = false;
+
+/* ══ LOGIN ══ */
+function mcLogin() {
+  const u = document.getElementById('l-user').value.trim();
+  const p = document.getElementById('l-pass').value.trim();
+  if (u === ADMIN_USER && p === ADMIN_PASS) {
+    document.getElementById('mc-login').style.display = 'none';
+    document.getElementById('mc-admin').style.display = 'flex';
+    loggedIn = true;
+    iniciarAdmin();
+  } else {
+    document.getElementById('l-err').style.display = 'block';
+  }
+}
+document.getElementById('l-pass').addEventListener('keydown', e => { if (e.key === 'Enter') mcLogin(); });
+
+function mcLogout() {
+  loggedIn = false;
+  document.getElementById('mc-login').style.display = 'flex';
+  document.getElementById('mc-admin').style.display = 'none';
+}
+
+/* ══ INIT ══ */
+function iniciarAdmin() {
+  actualizarFechaHora();
+  setInterval(actualizarFechaHora, 1000);
+  renderKPIs();
+  renderAgenda();
+  renderTabla();
+  renderStats();
+  // Fecha mínima en el form
+  const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1);
+  document.getElementById('f-fecha').min = tomorrow.toISOString().split('T')[0];
+}
+
+function actualizarFechaHora() {
+  const now = new Date();
+  document.getElementById('adm-fecha-hora').textContent =
+    now.toLocaleString('es-CR', { weekday:'short', day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' });
+}
+
+/* ══ TABS ══ */
+function mcTab(id) {
+  document.querySelectorAll('.adm-tab').forEach((t,i) => {
+    const ids = ['agenda','reservas','nueva','stats'];
+    t.classList.toggle('active', ids[i] === id);
+  });
+  document.querySelectorAll('.adm-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  if (id === 'stats') renderStats();
+}
+
+/* ══ KPIs ══ */
+function renderKPIs() {
+  const hoy = new Date().toISOString().split('T')[0];
+  const mesActual = new Date().toISOString().slice(0, 7);
+  const total      = reservas.length;
+  const pendiente  = reservas.filter(r => r.estado === 'Pendiente').length;
+  const hoyCount   = reservas.filter(r => r.fecha === hoy).length;
+  const completado = reservas.filter(r => r.estado === 'Completado' && r.fecha.startsWith(mesActual)).length;
+  const ingresos   = reservas.filter(r => r.estado === 'Completado' && r.fecha.startsWith(mesActual))
+                              .reduce((s,r) => s + (r.precio||0), 0);
+  document.getElementById('kpi-total').textContent     = total;
+  document.getElementById('kpi-pendiente').textContent = pendiente;
+  document.getElementById('kpi-hoy').textContent       = hoyCount;
+  document.getElementById('kpi-completado').textContent= completado;
+  document.getElementById('kpi-ingresos').textContent  = '₡' + ingresos.toLocaleString('es-CR');
+
+  const titulo = document.getElementById('agenda-fecha-titulo');
+  if (titulo) {
+    const hoyFmt = new Date().toLocaleDateString('es-CR',{weekday:'long',day:'numeric',month:'long'});
+    titulo.textContent = 'Agenda — ' + hoyFmt.charAt(0).toUpperCase() + hoyFmt.slice(1);
+  }
+}
+
+/* ══ AGENDA DEL DÍA ══ */
+function renderAgenda() {
+  const hoy = new Date().toISOString().split('T')[0];
+  const hoyRes = reservas.filter(r => r.fecha === hoy && r.estado !== 'Cancelado')
+                          .sort((a,b) => a.hora.localeCompare(b.hora));
+  const cnt = document.getElementById('agenda-count');
+  if (cnt) cnt.textContent = hoyRes.length + ' cita' + (hoyRes.length !== 1 ? 's' : '');
+  const cont = document.getElementById('agenda-cards');
+  if (!cont) return;
+  if (hoyRes.length === 0) {
+    cont.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:3rem;color:var(--texto)"><p style="font-size:2rem">📅</p><p style="margin-top:.5rem">No hay reservas para hoy.</p><a href="#" onclick="mcTab(\'nueva\');return false" style="color:var(--amarillo);font-size:.85rem;margin-top:.5rem;display:inline-block">+ Agregar reserva</a></div>';
+    return;
+  }
+  cont.innerHTML = hoyRes.map((r, i) => `
+    <div class="agenda-card">
+      <div class="hora-badge">⏰ ${r.hora}</div>
+      <div class="precio-tag">₡${(r.precio||0).toLocaleString('es-CR')}</div>
+      <div class="cliente-nombre">👤 ${r.nombre}</div>
+      <div class="servicio-tag">🧴 ${r.servicio}</div>
+      <div class="servicio-tag">🚗 ${r.vehiculo}</div>
+      <div class="direccion-tag">📍 ${r.direccion}</div>
+      <div class="card-actions">
+        <button class="adm-action-btn confirmar" onclick="cambiarEstado(${r.id},'Confirmado')">✔ Confirmar</button>
+        <button class="adm-action-btn completar" onclick="cambiarEstado(${r.id},'Completado')">✅ Completar</button>
+        <button class="adm-action-btn" onclick="abrirWACliente('${r.telefono}','${r.nombre}')">💬 WA</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ══ TABLA RESERVAS ══ */
+function renderTabla() {
+  const busq = (document.getElementById('adm-buscador')||{value:''}).value.toLowerCase();
+  let data = [...reservas].reverse();
+  if (filtroEstado !== 'todos') data = data.filter(r => r.estado === filtroEstado);
+  if (busq) data = data.filter(r =>
+    r.nombre.toLowerCase().includes(busq) ||
+    r.telefono.includes(busq) ||
+    r.direccion.toLowerCase().includes(busq)
+  );
+  const tbody = document.getElementById('tabla-body');
+  if (!tbody) return;
+  if (data.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;padding:2rem;color:var(--texto)">No hay reservas que coincidan.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = data.map((r, i) => `
+    <tr>
+      <td style="color:var(--texto)">#${r.id}</td>
+      <td>${r.fecha}</td>
+      <td><strong>${r.nombre}</strong></td>
+      <td><a href="tel:+506${r.telefono.replace(/\D/g,'')}" style="color:var(--azul)">${r.telefono}</a></td>
+      <td style="max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${r.direccion}">${r.direccion}</td>
+      <td>${r.vehiculo}</td>
+      <td>${r.servicio}</td>
+      <td>${r.hora}</td>
+      <td style="color:var(--verde);font-weight:600">₡${(r.precio||0).toLocaleString('es-CR')}</td>
+      <td><span class="badge badge-${r.estado.toLowerCase()}">${r.estado}</span></td>
+      <td style="white-space:nowrap">
+        <button class="adm-action-btn" onclick="verDetalle(${r.id})">👁</button>
+        <button class="adm-action-btn confirmar" onclick="cambiarEstado(${r.id},'Confirmado')" title="Confirmar">✔</button>
+        <button class="adm-action-btn completar" onclick="cambiarEstado(${r.id},'Completado')" title="Completar">✅</button>
+        <button class="adm-action-btn cancelar" onclick="cambiarEstado(${r.id},'Cancelado')" title="Cancelar">✖</button>
+        <button class="adm-action-btn" onclick="abrirWACliente('${r.telefono}','${r.nombre}')" title="WhatsApp">💬</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function mcFiltrar() { renderTabla(); }
+function mcFiltroEstado(btn, estado) {
+  document.querySelectorAll('.adm-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filtroEstado = estado;
+  renderTabla();
+}
+
+/* ══ DETALLE / MODAL ══ */
+function verDetalle(id) {
+  const r = reservas.find(x => x.id === id);
+  if (!r) return;
+  document.getElementById('modal-content').innerHTML = `
+    <div class="modal-row"><span class="modal-lbl">Cliente</span><span class="modal-val">${r.nombre}</span></div>
+    <div class="modal-row"><span class="modal-lbl">Teléfono</span><span class="modal-val"><a href="tel:+506${r.telefono.replace(/\D/g,'')}" style="color:var(--azul)">${r.telefono}</a></span></div>
+    <div class="modal-row"><span class="modal-lbl">Dirección</span><span class="modal-val">${r.direccion}</span></div>
+    <div class="modal-row"><span class="modal-lbl">Vehículo</span><span class="modal-val">${r.vehiculo}</span></div>
+    <div class="modal-row"><span class="modal-lbl">Servicio</span><span class="modal-val">${r.servicio}</span></div>
+    <div class="modal-row"><span class="modal-lbl">Fecha</span><span class="modal-val">${r.fecha}</span></div>
+    <div class="modal-row"><span class="modal-lbl">Hora</span><span class="modal-val">${r.hora}</span></div>
+    <div class="modal-row"><span class="modal-lbl">Precio</span><span class="modal-val" style="color:var(--verde);font-weight:700">₡${(r.precio||0).toLocaleString('es-CR')}</span></div>
+    <div class="modal-row"><span class="modal-lbl">Estado</span><span class="modal-val"><span class="badge badge-${r.estado.toLowerCase()}">${r.estado}</span></span></div>
+    ${r.notas ? `<div class="modal-row"><span class="modal-lbl">Notas</span><span class="modal-val" style="color:var(--texto)">${r.notas}</span></div>` : ''}
+  `;
+  document.getElementById('modal-actions').innerHTML = `
+    <button class="adm-action-btn confirmar" onclick="cambiarEstado(${r.id},'Confirmado');cerrarModal()">✔ Confirmar</button>
+    <button class="adm-action-btn completar" onclick="cambiarEstado(${r.id},'Completado');cerrarModal()">✅ Completar</button>
+    <button class="adm-action-btn cancelar"  onclick="cambiarEstado(${r.id},'Cancelado');cerrarModal()">✖ Cancelar</button>
+    <button class="adm-action-btn" onclick="abrirWACliente('${r.telefono}','${r.nombre}')">💬 WhatsApp</button>
+    <button class="adm-action-btn" onclick="cerrarModal()" style="margin-left:auto">Cerrar</button>
+  `;
+  document.getElementById('modal-detalle').classList.add('open');
+}
+function cerrarModal() { document.getElementById('modal-detalle').classList.remove('open'); }
+document.getElementById('modal-detalle').addEventListener('click', e => { if (e.target === e.currentTarget) cerrarModal(); });
+
+/* ══ CAMBIAR ESTADO ══ */
+function cambiarEstado(id, nuevoEstado) {
+  const r = reservas.find(x => x.id === id);
+  if (!r) return;
+  r.estado = nuevoEstado;
+  guardarLocal();
+  renderKPIs(); renderAgenda(); renderTabla(); renderStats();
+  toast('Estado actualizado → ' + nuevoEstado, 'success');
+}
+
+/* ══ FORMULARIO NUEVA RESERVA ══ */
+function calcPrecioAdmin() {
+  const v = document.getElementById('f-vehiculo').value;
+  const s = document.getElementById('f-servicio').value;
+  const box = document.getElementById('admin-price-box');
+  if (v && s && PRECIOS[s] && PRECIOS[s][v]) {
+    const p = PRECIOS[s][v];
+    document.getElementById('admin-price-monto').textContent = '₡' + p.toLocaleString('es-CR');
+    document.getElementById('admin-price-detail').textContent = NOMBRE_SERVICIO[s] + ' · ' + NOMBRE_VEHICULO[v];
+    box.style.display = 'flex';
+  } else {
+    box.style.display = 'none';
+  }
+}
+
+function guardarReserva() {
+  const nombre    = document.getElementById('f-nombre').value.trim();
+  const telefono  = document.getElementById('f-telefono').value.trim();
+  const direccion = document.getElementById('f-direccion').value.trim();
+  const vehiculoK = document.getElementById('f-vehiculo').value;
+  const servicioK = document.getElementById('f-servicio').value;
+  const fecha     = document.getElementById('f-fecha').value;
+  const hora      = document.getElementById('f-hora').value;
+  const notas     = document.getElementById('f-notas').value.trim();
+
+  if (!nombre || !telefono || !direccion || !vehiculoK || !servicioK || !fecha || !hora) {
+    toast('Completá todos los campos obligatorios (*)', 'error'); return;
+  }
+  const precio = PRECIOS[servicioK]?.[vehiculoK] || 0;
+  const nuevaRes = {
+    id: Date.now(),
+    nombre, telefono, direccion,
+    vehiculo: NOMBRE_VEHICULO[vehiculoK] || vehiculoK,
+    vehiculoK,
+    servicio: NOMBRE_SERVICIO[servicioK] || servicioK,
+    servicioK,
+    fecha, hora, precio, notas,
+    estado: 'Pendiente',
+    timestamp: new Date().toISOString()
+  };
+  reservas.push(nuevaRes);
+  guardarLocal();
+  renderKPIs(); renderAgenda(); renderTabla(); renderStats();
+  limpiarForm();
+  toast('✅ Reserva guardada correctamente', 'success');
+  mcTab('agenda');
+  // Enviar a n8n si está configurado
+  if (N8N_WEBHOOK) {
+    fetch(N8N_WEBHOOK, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ nombre, telefono, direccion, vehiculo: vehiculoK, servicio: servicioK, fecha, hora }) }).catch(()=>{});
+  }
+}
+
+function limpiarForm() {
+  ['f-nombre','f-telefono','f-direccion','f-notas'].forEach(id => document.getElementById(id).value='');
+  ['f-vehiculo','f-servicio','f-hora'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('f-fecha').value='';
+  document.getElementById('admin-price-box').style.display='none';
+}
+
+function enviarWAAdmin() {
+  const nombre    = document.getElementById('f-nombre').value.trim();
+  const telefono  = document.getElementById('f-telefono').value.trim();
+  const direccion = document.getElementById('f-direccion').value.trim();
+  const vehiculoK = document.getElementById('f-vehiculo').value;
+  const servicioK = document.getElementById('f-servicio').value;
+  const fecha     = document.getElementById('f-fecha').value;
+  const hora      = document.getElementById('f-hora').value;
+  if (!nombre || !vehiculoK || !servicioK) { toast('Completá los datos primero', 'error'); return; }
+  const precio = PRECIOS[servicioK]?.[vehiculoK] || 0;
+  const msg = `✅ *Confirmación — Carwas M&C 173*\n\nHola ${nombre}! Tu cita fue confirmada 🚗✨\n\n📅 Fecha: ${fecha}\n⏰ Hora: ${hora}\n🧴 Servicio: ${NOMBRE_SERVICIO[servicioK]}\n🚗 Vehículo: ${NOMBRE_VEHICULO[vehiculoK]}\n💰 Total: ₡${precio.toLocaleString('es-CR')}\n📍 Dirección: ${direccion}\n\n💳 SINPE Móvil: 6094-5354 o efectivo al momento.\n\n¡Te esperamos! 😊`;
+  const num = telefono ? '506' + telefono.replace(/\D/g,'') : WA_GREIVIN;
+  window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(msg), '_blank');
+}
+
+function abrirWACliente(telefono, nombre) {
+  const num = '506' + telefono.replace(/\D/g,'');
+  const msg = `Hola ${nombre}! Te escribo de *Carwas M&C 173* 🚗`;
+  window.open('https://wa.me/' + num + '?text=' + encodeURIComponent(msg), '_blank');
+}
+
+/* ══ ESTADÍSTICAS ══ */
+function renderStats() {
+  const total = reservas.length || 1;
+  const max = v => Math.max(...v, 1);
+  const pct = (v, m) => Math.round(v / m * 100);
+
+  // Servicios
+  const sv = { basico: 0, encerado: 0, detallado: 0 };
+  reservas.forEach(r => {
+    if (r.servicioK) sv[r.servicioK] = (sv[r.servicioK]||0) + 1;
+    else if ((r.servicio||'').includes('básico')) sv.basico++;
+    else if ((r.servicio||'').includes('encerado')) sv.encerado++;
+    else if ((r.servicio||'').includes('Detallado')) sv.detallado++;
+  });
+  const maxSv = max(Object.values(sv));
+  renderBarChart('chart-servicios', [
+    { lbl: 'Lavado básico', val: sv.basico,    pct: pct(sv.basico,maxSv),    cls: '' },
+    { lbl: 'Encerado',      val: sv.encerado,  pct: pct(sv.encerado,maxSv),  cls: 'azul' },
+    { lbl: 'Detallado',     val: sv.detallado, pct: pct(sv.detallado,maxSv), cls: 'verde' },
+  ]);
+
+  // Estados
+  const es = { Pendiente:0, Confirmado:0, Completado:0, Cancelado:0 };
+  reservas.forEach(r => { if (es[r.estado] !== undefined) es[r.estado]++; });
+  const maxEs = max(Object.values(es));
+  renderBarChart('chart-estados', [
+    { lbl: 'Pendientes',  val: es.Pendiente,  pct: pct(es.Pendiente,maxEs),  cls: 'naranja' },
+    { lbl: 'Confirmados', val: es.Confirmado, pct: pct(es.Confirmado,maxEs), cls: 'azul' },
+    { lbl: 'Completados', val: es.Completado, pct: pct(es.Completado,maxEs), cls: 'verde' },
+    { lbl: 'Cancelados',  val: es.Cancelado,  pct: pct(es.Cancelado,maxEs),  cls: '' },
+  ]);
+
+  // Vehículos
+  const ve = { auto: 0, suv: 0 };
+  reservas.forEach(r => {
+    if ((r.vehiculoK||r.vehiculo||'').includes('auto')||(r.vehiculo||'').includes('4x2')) ve.auto++;
+    else ve.suv++;
+  });
+  const maxVe = max(Object.values(ve));
+  renderBarChart('chart-vehiculos', [
+    { lbl: 'Automóvil 4x2', val: ve.auto, pct: pct(ve.auto,maxVe), cls: 'azul' },
+    { lbl: 'SUV / 4x4',     val: ve.suv,  pct: pct(ve.suv,maxVe),  cls: 'verde' },
+  ]);
+
+  // Ingresos por servicio
+  const ing = { basico: 0, encerado: 0, detallado: 0 };
+  reservas.filter(r => r.estado === 'Completado').forEach(r => {
+    const k = r.servicioK;
+    if (k && ing[k] !== undefined) ing[k] += r.precio || 0;
+  });
+  const maxIng = max(Object.values(ing));
+  renderBarChart('chart-ingresos', [
+    { lbl: 'Lavado básico', val: '₡'+ing.basico.toLocaleString('es-CR'),    pct: pct(ing.basico,maxIng),    cls: '' },
+    { lbl: 'Encerado',      val: '₡'+ing.encerado.toLocaleString('es-CR'),  pct: pct(ing.encerado,maxIng),  cls: 'azul' },
+    { lbl: 'Detallado',     val: '₡'+ing.detallado.toLocaleString('es-CR'), pct: pct(ing.detallado,maxIng), cls: 'verde' },
+  ]);
+}
+
+function renderBarChart(id, rows) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.innerHTML = rows.map(r => `
+    <div class="bar-row">
+      <div class="bar-label">${r.lbl}</div>
+      <div class="bar-track">
+        <div class="bar-fill ${r.cls}" style="width:${r.pct}%">${r.val}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* ══ HELPERS ══ */
+function guardarLocal() {
+  localStorage.setItem('carwas_reservas', JSON.stringify(reservas));
+}
+
+function toast(msg, tipo = '') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'toast ' + tipo + ' show';
+  setTimeout(() => el.classList.remove('show'), 3500);
+}
+
+/* ══ DATOS DE DEMO (borrar cuando tengas datos reales) ══ */
+function cargarDatosDemo() {
+  if (reservas.length > 0) return;
+  const hoy = new Date().toISOString().split('T')[0];
+  const ayer = new Date(Date.now()-86400000).toISOString().split('T')[0];
+  reservas = [
+    { id:1, nombre:'María Rodríguez', telefono:'8888-1111', direccion:'Cartago Centro, 100m norte del parque', vehiculo:'Automóvil 4x2', vehiculoK:'auto', servicio:'Lavado básico + aspirado', servicioK:'basico', fecha:hoy, hora:'8:00 a.m.', precio:5000, notas:'', estado:'Pendiente', timestamp: new Date().toISOString() },
+    { id:2, nombre:'Carlos Mora', telefono:'7777-2222', direccion:'Res. Los Colegios, casa 15, Paraíso', vehiculo:'SUV / 4x4', vehiculoK:'suv', servicio:'Lavado + aspirado + encerado', servicioK:'encerado', fecha:hoy, hora:'10:00 a.m.', precio:10000, notas:'Auto negro, cuidado con los rines', estado:'Confirmado', timestamp: new Date().toISOString() },
+    { id:3, nombre:'Luis Jiménez', telefono:'6666-3333', direccion:'Dulce Nombre, frente al mini súper', vehiculo:'Automóvil 4x2', vehiculoK:'auto', servicio:'Detallado completo', servicioK:'detallado', fecha:ayer, hora:'9:00 a.m.', precio:25000, notas:'', estado:'Completado', timestamp: new Date().toISOString() },
+    { id:4, nombre:'Ana Vargas', telefono:'5555-4444', direccion:'Aguacaliente, 200m este del colegio', vehiculo:'SUV / 4x4', vehiculoK:'suv', servicio:'Lavado básico + aspirado', servicioK:'basico', fecha:ayer, hora:'2:00 p.m.', precio:7000, notas:'', estado:'Completado', timestamp: new Date().toISOString() },
+  ];
+  guardarLocal();
+}
+
+cargarDatosDemo();
+</script>
+</body>
+</html>

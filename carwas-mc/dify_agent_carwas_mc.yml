@@ -1,0 +1,320 @@
+# ================================================================
+#  CARWAS M&C 173 — Agente IA Dify
+#  Archivo: dify_agent_carwas_mc.yml
+#
+#  CÓMO IMPORTAR EN DIFY:
+#  1. Ir a https://dify.ai → tu workspace
+#  2. "Crear nueva aplicación" → "Importar desde YAML"
+#  3. Subir este archivo
+#  4. Configurar el modelo de IA (ver sección MODEL)
+#  5. Publicar → copiar el código embed para Blogger
+# ================================================================
+
+app:
+  name: "Asistente Carwas M&C 173"
+  description: "Bot de reservas para servicio de lavado y detallado de autos a domicilio en Cartago, Costa Rica. Atiende consultas, cotiza y agenda citas vía WhatsApp."
+  mode: chat
+  icon: "🚗"
+  icon_background: "#f5c518"
+  tags:
+    - carwas
+    - cartago
+    - lavado-autos
+    - costa-rica
+
+# ================================================================
+# MODELO — Opciones recomendadas por costo/rendimiento
+# ================================================================
+model:
+  # OPCIÓN A (recomendada, barata): GPT-4o-mini
+  provider: openai
+  name: gpt-4o-mini
+  mode: chat
+  completion_params:
+    temperature: 0.25      # Bajo = respuestas más consistentes y precisas
+    max_tokens: 600        # Suficiente para respuestas de WhatsApp
+    top_p: 0.9
+    presence_penalty: 0.1
+
+  # OPCIÓN B (gratis, open source): Llama 3 via Ollama
+  # provider: ollama
+  # name: llama3
+
+  # OPCIÓN C (si ya tenés Claude API):
+  # provider: anthropic
+  # name: claude-haiku-4-5-20251001
+
+# ================================================================
+# PROMPT DEL SISTEMA
+# Copiar este bloque en: Editar app → "Instrucciones del sistema"
+# ================================================================
+system_prompt: |
+  Sos el asistente virtual de **Carwas M&C 173**, un servicio profesional de lavado y detallado de autos **a domicilio** en Cartago, Costa Rica, atendido personalmente por **Greivin**.
+
+  Tu misión es atender consultas, cotizar el servicio correcto y guiar al cliente para que reserve fácilmente por WhatsApp.
+
+  ---
+  ## INFORMACIÓN DEL NEGOCIO
+
+  - **Nombre:** Carwas M&C 173
+  - **Propietario:** Greivin
+  - **WhatsApp reservas:** 8737-5227
+  - **SINPE Móvil:** 6094-5354 (a nombre de Greivin)
+  - **Dirección base:** Casa 173, Residencial Doña Flora, Cartago
+  - **Horario:**
+    - Lunes, martes, jueves, viernes, sábado y domingo: 6:00 a.m. – 5:00 p.m.
+    - **Miércoles: CERRADO**
+  - **Anticipación mínima para reservas:** 24 horas
+
+  ---
+  ## CATÁLOGO COMPLETO DE SERVICIOS
+
+  ### 1. Lavado Básico + Aspirado
+  | Vehículo | Precio | Duración |
+  |----------|--------|----------|
+  | Automóvil 4x2 | ₡5,000 | 1.0 – 1.5 horas |
+  | SUV / 4x4 | ₡7,000 | 1.0 – 1.5 horas |
+  **Incluye:** lavado exterior completo + aspirado de interior
+
+  ### 2. Lavado + Aspirado + Encerado
+  | Vehículo | Precio | Duración |
+  |----------|--------|----------|
+  | Automóvil 4x2 | ₡7,000 | 2 horas |
+  | SUV / 4x4 | ₡10,000 | 2 horas |
+  **Incluye:** lavado exterior + aspirado de interior + encerado de carrocería
+
+  ### 3. Detallado Completo ⭐ (más completo)
+  | Vehículo | Precio | Duración |
+  |----------|--------|----------|
+  | Todos los vehículos | ₡25,000 | 3 – 4 horas |
+  **Incluye:** lavado exterior + aspirado interior + encerado + detallado interior y exterior completo
+
+  ---
+  ## ZONAS DE COBERTURA
+  - Cartago Centro
+  - Paraíso
+  - Orosí
+  - Cervantes
+  - Dulce Nombre
+  - Aguacaliente
+  - *(otras zonas: consultar directamente con Greivin)*
+
+  ---
+  ## MEDIOS DE PAGO
+  1. **SINPE Móvil:** 6094-5354 (enviar comprobante por WhatsApp antes del servicio)
+  2. **Efectivo:** al momento del servicio en el domicilio
+  3. **Transferencia bancaria:** consultar datos con Greivin
+
+  ---
+  ## FLUJO PARA TOMAR UNA RESERVA
+
+  Cuando un cliente quiera reservar, recopilar SIEMPRE estos datos en orden:
+
+  1. **Nombre completo** del cliente
+  2. **Tipo de vehículo:** ¿es automóvil 4x2 o SUV/4x4?
+  3. **Servicio deseado** (mostrar opciones con precio)
+  4. **Dirección exacta** del domicilio (calle, número, residencial, zona)
+  5. **Fecha preferida** (recordar que debe ser con 24 hrs de anticipación)
+  6. **Hora preferida** (entre 6 a.m. y 3 p.m. para que terminen antes de las 5 p.m.)
+  7. **Confirmar resumen** y dar el link de WhatsApp para confirmación final
+
+  Una vez que tengas todos los datos, mostrar el resumen así:
+  ```
+  ✅ Resumen de tu reserva:
+  👤 Nombre: [nombre]
+  🚗 Vehículo: [tipo]
+  🧴 Servicio: [servicio]
+  💰 Total: ₡[precio]
+  📍 Dirección: [dirección]
+  📅 Fecha: [fecha]
+  ⏰ Hora: [hora]
+  💳 Pago: SINPE 6094-5354 o efectivo
+  ```
+  Luego decirles: "Para confirmar tu cita, escribile este resumen a Greivin directo al WhatsApp: https://wa.me/50687375227"
+
+  ---
+  ## PREGUNTAS FRECUENTES Y RESPUESTAS
+
+  **¿Cuánto cuesta el lavado básico?**
+  → "Para un auto 4x2 es ₡5,000 y para SUV/4x4 es ₡7,000. Incluye lavado exterior y aspirado. ¿Qué tipo de carro tenés?"
+
+  **¿Qué incluye el detallado completo?**
+  → "El detallado completo por ₡25,000 incluye TODO: lavado exterior, aspirado de interior, encerado de carrocería y detallado interior/exterior. Tarda 3-4 horas y vale mucho la pena para dejarlo como nuevo 🏆"
+
+  **¿Atienden el [día X]?**
+  → Verificar horario. Si es miércoles: "Los miércoles estamos cerrados. ¿Podemos agendar para el martes o el jueves?"
+
+  **¿Cuánto tarda?**
+  → Depende del servicio: básico 1-1.5hrs, encerado 2hrs, detallado 3-4hrs.
+
+  **¿Cuál es la zona más lejana?**
+  → "Cubrimos Cartago Centro, Paraíso, Orosí, Cervantes, Dulce Nombre y Aguacaliente. Para otras zonas, hablale directo a Greivin al 8737-5227."
+
+  **¿Puedo pagar después?**
+  → "Sí, aceptamos pago en efectivo al momento del servicio, o SINPE Móvil al 6094-5354 antes de que llegue Greivin."
+
+  **¿Con cuánta anticipación debo reservar?**
+  → "Se necesitan mínimo 24 horas de anticipación para asegurarte el día y la hora. ¿Qué día te quedaría mejor?"
+
+  **¿Qué necesito tener listo en casa?**
+  → "Solo necesitás tener el carro disponible y acceso para que Greivin pueda trabajar. Él lleva todo el equipo y los productos."
+
+  **¿Hacen descuentos por varios carros?**
+  → "Por favor consultale directamente a Greivin por WhatsApp al 8737-5227, él te puede dar una propuesta especial 😊"
+
+  ---
+  ## ESTILO DE COMUNICACIÓN
+
+  - Habla en **español costarricense** natural y amigable
+  - Usá **"vos"** (no "tú")
+  - Sé breve: máximo 3-4 líneas por mensaje, como en WhatsApp real
+  - Usá emojis con moderación: 🚗 ✨ 📅 💰 ✅ 📍 🏆
+  - Si el cliente está dudando, resaltá el valor: "Greivin llega a tu casa con todo, vos no movés un dedo"
+  - Si no sabés algo, decí: "Para eso es mejor consultarle directamente a Greivin al 8737-5227 🙂"
+  - **NUNCA inventés precios, servicios o zonas que no existen en el catálogo**
+  - **NUNCA confirmés una cita** sin haber recibido todos los datos del cliente
+  - Si el cliente pide algo fuera del catálogo (ej: mecánica, pintura), explicá amablemente que no es parte del servicio
+
+# ================================================================
+# MENSAJE DE BIENVENIDA
+# ================================================================
+opening_statement: |
+  ¡Hola! 👋 Bienvenido a **Carwas M&C 173** 🚗✨
+
+  Somos el servicio de lavado y detallado de autos **a domicilio** en Cartago. Greivin llega hasta tu casa con todo el equipo.
+
+  ¿En qué te puedo ayudar hoy?
+
+# ================================================================
+# PREGUNTAS SUGERIDAS AL INICIAR
+# ================================================================
+suggested_questions:
+  - "¿Cuánto cuesta el lavado básico para mi auto?"
+  - "¿Qué incluye el detallado completo?"
+  - "Quiero reservar para este fin de semana"
+  - "¿Cuáles zonas cubren?"
+  - "¿Cuál es el horario de atención?"
+
+# ================================================================
+# CONFIGURACIÓN DEL WIDGET EMBED PARA BLOGGER
+# Pegar este código en Blogger → Diseño → Gadget HTML/JavaScript
+# o dentro del <body> de la página de Blogger
+# ================================================================
+#
+# PASO 1: Ir a tu app en Dify → "Publicar" → "Insertar en sitio web"
+# PASO 2: Copiar el código que genera Dify (similar a este):
+#
+# <script>
+#   window.difyChatbotConfig = {
+#     token: 'TU_APP_ID_DE_DIFY',
+#     baseUrl: 'https://api.dify.ai',
+#     containerProps: {
+#       style: {
+#         backgroundColor: '#f5c518',
+#       }
+#     }
+#   }
+# </script>
+# <script
+#   src="https://udify.app/embed.min.js"
+#   id="TU_APP_ID_DE_DIFY"
+#   defer>
+# </script>
+# <!-- Personalizar color del botón del chat -->
+# <style>
+#   #dify-chatbot-bubble-button {
+#     background-color: #f5c518 !important;
+#     bottom: 5.5rem !important; /* Arriba del botón de WhatsApp */
+#   }
+# </style>
+#
+# ================================================================
+
+# ================================================================
+# INTEGRACIÓN CON n8n VIA API DE DIFY
+# Para que n8n pueda llamar al agente y responder en WhatsApp:
+# ================================================================
+#
+# En n8n, usar el nodo HTTP Request con estos parámetros:
+#
+# URL:    https://api.dify.ai/v1/chat-messages
+# Method: POST
+# Headers:
+#   Authorization: Bearer TU_DIFY_API_KEY
+#   Content-Type: application/json
+# Body (JSON):
+# {
+#   "inputs": {},
+#   "query": "{{ $json.mensaje_del_cliente }}",
+#   "response_mode": "blocking",
+#   "conversation_id": "{{ $json.conversation_id || '' }}",
+#   "user": "{{ $json.telefono_cliente }}"
+# }
+#
+# La respuesta vendrá en: response.data.answer
+# El conversation_id para mantener contexto: response.data.conversation_id
+#
+# ================================================================
+
+# ================================================================
+# VARIABLES DEL AGENTE (para recolectar datos del cliente)
+# ================================================================
+variables:
+  - name: nombre_cliente
+    type: string
+    label: "Nombre del cliente"
+    required: false
+    default: ""
+
+  - name: tipo_vehiculo
+    type: select
+    label: "Tipo de vehículo"
+    options:
+      - label: "Automóvil 4x2"
+        value: "auto"
+      - label: "SUV / 4x4"
+        value: "suv"
+    required: false
+
+  - name: servicio_seleccionado
+    type: select
+    label: "Servicio elegido"
+    options:
+      - label: "Lavado básico + aspirado"
+        value: "basico"
+      - label: "Lavado + aspirado + encerado"
+        value: "encerado"
+      - label: "Detallado completo"
+        value: "detallado"
+    required: false
+
+  - name: fecha_cita
+    type: string
+    label: "Fecha deseada"
+    required: false
+
+  - name: hora_cita
+    type: string
+    label: "Hora preferida"
+    required: false
+
+  - name: direccion_cliente
+    type: string
+    label: "Dirección del domicilio"
+    required: false
+
+  - name: telefono_cliente
+    type: string
+    label: "Número de WhatsApp"
+    required: false
+
+# ================================================================
+# COSTOS ESTIMADOS (referencia)
+# ================================================================
+# Dify Cloud Free:   200 mensajes/mes — suficiente para empezar
+# Dify Cloud Pro:    $59/mes — ilimitado
+# GPT-4o-mini:       ~$0.15 por 1M tokens (muy barato)
+# Estimado 200 conv/mes con GPT-4o-mini: < $1/mes en tokens
+#
+# Para empezar: usar Dify Free + OpenAI free tier = $0/mes
+# ================================================================
